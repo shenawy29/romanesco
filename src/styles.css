@@ -1,0 +1,72 @@
+html, body
+{
+	height: 100%;
+}
+
+body
+{
+	display: flex;
+	margin: 0;
+}
+
+canvas
+{
+	flex-grow: 1;
+}
+
+.cm-editor{
+	display: initial !important;
+}
+
+#editor
+{
+	height: 100% !important;
+	width: 25%;
+}
+
+#run_btn
+{
+	height: 4em;
+	width: 4em;
+	position: absolute;
+	bottom: 0;
+	right: 0;
+	z-index: 100;
+}
+
+.lint-error
+{
+	font-family: arial; font-size: 70%; background: #ffa; color: #a00; padding: 2px 5px 3px;
+	display: flex;
+}
+.lint-error-icon
+{
+	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAHlBMVEW7AAC7AACxAAC7AAC7AAAAAAC4AAC5AAD///+7AAAUdclpAAAABnRSTlMXnORSiwCK0ZKSAAAATUlEQVR42mWPOQ7AQAgDuQLx/z8csYRmPRIFIwRGnosRrpamvkKi0FTIiMASR3hhKW+hAN6/tIWhu9PDWiTGNEkTtIOucA5Oyr9ckPgAWm0GPBog6v4AAAAASUVORK5CYII=");
+	background-size: contain;
+	background-repeat: no-repeat;
+	width: 20px;
+}
+
+@media (orientation: landscape)
+{
+	canvas
+	{
+		width: 1px;
+	}
+	body
+	{
+		flex-direction: row;
+	}
+}
+
+@media (orientation: portrait)
+{
+	canvas
+	{
+		height: 1px;
+	}
+	body
+	{
+		flex-direction: column;
+	}
+}
