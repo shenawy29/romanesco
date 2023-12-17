@@ -1,3 +1,4 @@
 dist
 glsl_parser/dist
+package-lock.json
 node_modules
