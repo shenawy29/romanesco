@@ -1,26 +1,174 @@
-@top Program { expression* }
-
-@skip { space | LineComment }
-
-expression {
-  Identifier |
-  String |
-  Boolean |
-  Application { "(" expression* ")" }
-}
+@top Program { Statement* }
 
 @tokens {
-  Identifier { $[a-zA-Z_\-0-9]+ }
+  PreprocDirectiveName {
+    "#" space* Identifier
+  }
 
+  Builtin{
+    "gl_" @asciiLetter*
+  }
+
+  Const { "const" }
+
+  DataType {
+    (Const space+)? (
+      "bool" | "int" | "uint" | "float" | "double" |
+      (("b"| "i" | "u" | "" | "d") "vec" ("2"|"3"|"4")) |
+      ("mat" ("2"|"3"|"4") "x" ("2"|"3"|"4")) |
+      ("mat" ("2"|"3"|"4"))
+    )
+  }
+
+  Type {
+    "void" |
+    DataType space+
+  }
+
+  Identifier { (@asciiLetter | "_")+((@asciiLetter | "_") | @digit)* }
+  
+  LineComment { "//" ![\n]* }
+
+  BlockComment { "/*" blockCommentRest }
+  blockCommentRest { ![*] blockCommentRest | "*" blockCommentAfterStar }
+  blockCommentAfterStar { "/" | "*" blockCommentAfterStar | ![/*] blockCommentRest }
+
+  @precedence { LineComment, BlockComment }
+  
   String { '"' (!["\\] | "\\" _)* '"' }
+  
+  Boolean { "true" | "false" }
 
-  Boolean { "#t" | "#f" }
+  Integer {("+" | "-")? @digit+ "u"?}
 
-  LineComment { ";" ![\n]* }
+  Float { ("+" | "-")? (("." @digit+) | (@digit+ "." @digit*)) ("f" | "F")?}
 
-  space { $[ \t\n\r]+ }
+  space { @whitespace+ }
 
-  "(" ")"
+  @precedence { Type, DataType, Identifier}
+  @precedence { Float, Integer, Boolean, Identifier }
+}
+
+@skip { space | LineComment | BlockComment }
+
+@precedence {
+  else @right
+}
+
+kw<term> { @specialize[@name={term}]<Identifier, term> }
+
+Statement{
+  Block |
+  Expression |
+
+  InVariableDeclaration |
+  OutVariableDeclaration |
+  UniformVariableDeclaration |
+
+  VariableDeclaration |
+  FunctionDeclaration |
+  FunctionDefinition |
+
+  IfStatement |
+  ForStatement |
+  WhileStatement |
+  DoWhileStatement |
+
+  ContinueStatement |
+  BreakStatement |
+  ReturnStatement |
+
+  Assign|
+
+  PreprocDirectiveName |
+
+  ";" |
+
+  Reserved
+}
+
+Reserved{
+  kw<"goto">
+  | kw<"typedef">
+  | kw<"enum">
+  | kw<"class">
+  | kw<"template">
+  | kw<"using">
+  | kw<"namespace">
+  | kw<"extern">
+  | kw<"this">
+}
+
+IfStatement {
+  kw<"if"> "(" Expression ")" Statement 
+}
+
+ForStatement {
+  kw<"for"> "(" (VariableDeclaration | Expression ";" | ";") Expression? ";" Expression? ")"
+}
+
+WhileStatement{
+  kw<"while"> "(" Expression ")" Statement
+}
+
+DoWhileStatement{
+  kw<"do"> "(" Expression ")" kw<"while"> "(" Expression ")"
+}
+
+ContinueStatement{
+  kw<"continue">
+}
+
+BreakStatement{
+  kw<"break">
+}
+
+ReturnStatement{
+  kw<"return"> Expression
+}
+
+InVariableDeclaration {
+  kw<"in"> DataType Identifier ("=" Expression)? ";"
+}
+
+OutVariableDeclaration {
+  kw<"out"> DataType Identifier ("=" Expression)? ";"
+}
+
+UniformVariableDeclaration {
+  kw<"uniform"> DataType Identifier ("=" Expression)? ";"
+}
+
+VariableDeclaration {
+  DataType Identifier ("=" Expression)? ";"
+}
+
+FunctionDeclaration {
+  FunctionHeader ";"
+}
+
+FunctionDefinition {
+  FunctionHeader Block
+}
+
+FunctionHeader {
+  Type Identifier "(" ( "" | (Identifier Identifier ("," Identifier Identifier)*)) ")"
+}
+
+Assign {
+  Identifier "=" Statement
+}
+
+Block{
+  "{" Statement* "}"
+}
+
+Expression{
+  Identifier|
+  String |
+  Integer |
+  Float |
+  Boolean
 }
 
 @detectDelim

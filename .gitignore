@@ -1,4 +1,7 @@
 dist
-glsl_parser/dist
 package-lock.json
-node_modules
+/node_modules
+
+glsl_parser/dist
+glsl_parser/src/*.js
+glsl_parser/src/*.d.ts

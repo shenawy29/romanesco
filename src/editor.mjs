@@ -5,8 +5,6 @@ import {lintGutter} from "@codemirror/lint"
 
 import {UpdateLints} from "./errors.mjs"
 
-import {javascript} from "@codemirror/lang-javascript"
-
 import {GLSL} from "../glsl_parser/dist/index"
 
 var initial_program =
@@ -145,7 +143,7 @@ let keymaps = [{key:"Alt-Enter", run: run_editor}];
 
 let state = EditorState.create({
     doc : initial_program,
-    extensions: [javascript(), keymap.of(keymaps), lintGutter(), basicSetup, EditorView.lineWrapping]
+    extensions: [GLSL(), keymap.of(keymaps), lintGutter(), basicSetup, EditorView.lineWrapping]
   })
   
 let editor = new EditorView({
