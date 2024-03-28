@@ -26,18 +26,19 @@ export const GLSLLanguage = LRLanguage.define({
         Application: foldInside
       }),
       styleTags({
-        "for while do in out uniform break continue if else return"   : t.keyword,
-        "goto typedef enum class template using namespace extern this"   : t.keyword,
+        "for while do in out uniform break continue if else return switch case default struct"   : t.keyword,
+        "goto typedef enum class template using namespace extern this sizeof static volatile public long"   : t.keyword,
+        "Builtin"              : t.keyword,
         "PreprocDirectiveName" : t.processingInstruction,
-        "Identifier"  : t.variableName,
-        "Boolean"     : t.bool,
-        "String"      : t.string,
-        "LineComment" : t.lineComment,
-        "BlockComment" : t.blockComment,
-        "Integer"     : t.integer,
-        "Float"       : t.float,
-        "Type"        : t.typeName,
-        "( )"         : t.paren
+        "Identifier"           : t.variableName,
+        "Boolean"              : t.bool,
+        "String"               : t.string,
+        "LineComment"          : t.lineComment,
+        "BlockComment"         : t.blockComment,
+        "Integer"              : t.integer,
+        "Float"                : t.float,
+        "PrimitiveType"        : t.typeName,
+        "( )"                  : t.paren
       })
     ]
   }),

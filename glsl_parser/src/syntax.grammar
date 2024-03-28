@@ -5,13 +5,13 @@
     "#" space* Identifier
   }
 
-  Builtin{
+  Builtin {
     "gl_" @asciiLetter*
   }
 
   Const { "const" }
 
-  DataType {
+  PrimitiveNonVoidType {
     (Const space+)? (
       "bool" | "int" | "uint" | "float" | "double" |
       (("b"| "i" | "u" | "" | "d") "vec" ("2"|"3"|"4")) |
@@ -20,46 +20,71 @@
     )
   }
 
-  Type {
+  PrimitiveType {
     "void" |
-    DataType space+
+    PrimitiveNonVoidType space+
   }
 
-  Identifier { (@asciiLetter | "_")+((@asciiLetter | "_") | @digit)* }
+  Identifier { (@asciiLetter | "_")+ ((@asciiLetter | "_") | @digit)* }
   
-  LineComment { "//" ![\n]* }
+  LineComment { "//" ("\\\n" | ![\n])* }
 
   BlockComment { "/*" blockCommentRest }
   blockCommentRest { ![*] blockCommentRest | "*" blockCommentAfterStar }
   blockCommentAfterStar { "/" | "*" blockCommentAfterStar | ![/*] blockCommentRest }
 
-  @precedence { LineComment, BlockComment }
+  @precedence {Builtin, Identifier}
+
+  @precedence { LineComment, BlockComment, "/" }
   
   String { '"' (!["\\] | "\\" _)* '"' }
   
   Boolean { "true" | "false" }
 
-  Integer {("+" | "-")? @digit+ "u"?}
+  Integer { @digit+ ("u"|"U")?}
 
-  Float { ("+" | "-")? (("." @digit+) | (@digit+ "." @digit*)) ("f" | "F")?}
+  Float { (("." @digit+) | (@digit+ "." @digit*)) ("f" | "F")?}
 
   space { @whitespace+ }
 
-  @precedence { Type, DataType, Identifier}
+  @precedence { PrimitiveType, PrimitiveNonVoidType, Identifier}
   @precedence { Float, Integer, Boolean, Identifier }
+
+  @precedence {"<<", "<=", "<"}
+  @precedence {">>", ">=", ">"}
 }
 
 @skip { space | LineComment | BlockComment }
 
+ArithOp<expr> { expr }
+BitOp<expr> { expr }
+LogicOp<expr> { expr }
+CompareOp<expr> { expr }
+
 @precedence {
+  subscript
+  suffix @left
+  prefix @left
+  mult @left
+  add @left
+  bitShift @left
+  greaterLess @left
+  equal @left
+  bitAnd @left
+  bitXor @left
+  bitOr @left
+  logicAnd @left
+  logicOr @left
   else @right
+  ternary @right
 }
 
 kw<term> { @specialize[@name={term}]<Identifier, term> }
 
-Statement{
+Statement {
   Block |
-  Expression |
+  ExpressionStatement |
+  EmptyStatement |
 
   InVariableDeclaration |
   OutVariableDeclaration |
@@ -69,25 +94,24 @@ Statement{
   FunctionDeclaration |
   FunctionDefinition |
 
+  StructDefinition |
+
   IfStatement |
   ForStatement |
   WhileStatement |
   DoWhileStatement |
+  SwitchStatement |
 
   ContinueStatement |
   BreakStatement |
   ReturnStatement |
 
-  Assign|
-
   PreprocDirectiveName |
-
-  ";" |
 
   Reserved
 }
 
-Reserved{
+Reserved {
   kw<"goto">
   | kw<"typedef">
   | kw<"enum">
@@ -97,50 +121,77 @@ Reserved{
   | kw<"namespace">
   | kw<"extern">
   | kw<"this">
+  | kw<"sizeof">
+  | kw<"static">
+  | kw<"volatile">
+  | kw<"public"> /*??*/
+  | kw<"long">
+}
+
+TypeIdentifier { PrimitiveType | Identifier }
+
+EmptyStatement {
+  ";"
+}
+
+ExpressionStatement {
+  Expression ";"
+}
+
+ParenthesizedExpression {
+  "(" Expression ")"
 }
 
 IfStatement {
-  kw<"if"> "(" Expression ")" Statement 
+  kw<"if"> ParenthesizedExpression Statement (!else kw<"else"> Statement)?
 }
 
 ForStatement {
-  kw<"for"> "(" (VariableDeclaration | Expression ";" | ";") Expression? ";" Expression? ")"
+  kw<"for"> "(" (VariableDeclaration | Expression ";" | ";") Expression? ";" Expression? ")" Statement
 }
 
-WhileStatement{
-  kw<"while"> "(" Expression ")" Statement
+WhileStatement {
+  kw<"while"> ParenthesizedExpression Statement
 }
 
-DoWhileStatement{
-  kw<"do"> "(" Expression ")" kw<"while"> "(" Expression ")"
+DoWhileStatement {
+  kw<"do"> Statement kw<"while"> ParenthesizedExpression ";"
 }
 
-ContinueStatement{
-  kw<"continue">
+SwitchStatement {
+  kw<"switch"> ParenthesizedExpression "{" CaseStatement* "}"
+}
+
+CaseStatement {
+  (kw<"case"> Expression)| kw<"default"> ":" Statement
+}
+
+ContinueStatement {
+  kw<"continue"> ";"
 }
 
 BreakStatement{
-  kw<"break">
+  kw<"break"> ";"
 }
 
 ReturnStatement{
-  kw<"return"> Expression
+  kw<"return"> Expression? ";"
 }
 
 InVariableDeclaration {
-  kw<"in"> DataType Identifier ("=" Expression)? ";"
+  kw<"in"> PrimitiveNonVoidType Identifier ("=" Expression)? ";"
 }
 
 OutVariableDeclaration {
-  kw<"out"> DataType Identifier ("=" Expression)? ";"
+  kw<"out"> PrimitiveNonVoidType Identifier ("=" Expression)? ";"
 }
 
 UniformVariableDeclaration {
-  kw<"uniform"> DataType Identifier ("=" Expression)? ";"
+  kw<"uniform"> PrimitiveNonVoidType Identifier ("=" Expression)? ";"
 }
 
 VariableDeclaration {
-  DataType Identifier ("=" Expression)? ";"
+  TypeIdentifier Identifier ("=" Expression)? ";"
 }
 
 FunctionDeclaration {
@@ -151,24 +202,66 @@ FunctionDefinition {
   FunctionHeader Block
 }
 
+ArgumentList{
+  "(" (TypeIdentifier Identifier ("," TypeIdentifier Identifier)*)? ")"
+}
+
 FunctionHeader {
-  Type Identifier "(" ( "" | (Identifier Identifier ("," Identifier Identifier)*)) ")"
+  TypeIdentifier Identifier ArgumentList
 }
 
-Assign {
-  Identifier "=" Statement
+StructDefinition {
+  kw<"struct"> "{" VariableDeclaration* "}" ";"
 }
 
-Block{
+Block {
   "{" Statement* "}"
 }
 
-Expression{
+Expression {
+  Builtin |
   Identifier|
   String |
   Integer |
   Float |
-  Boolean
+  Boolean |
+
+  ParenthesizedExpression |
+
+  BinaryExpression{
+    Expression !add ArithOp<"+" | "-"> Expression |
+    Expression !mult ArithOp<( "*"  | ("/" | "%"))> Expression |
+    Expression !logicAnd LogicOp { "&&" } Expression |
+    Expression !logicOr LogicOp { "||" } Expression |
+    Expression !bitOr BitOp<"|"> Expression |
+    Expression !bitXor BitOp<"^"> Expression |
+    Expression !bitAnd BitOp { "&" } Expression |
+    Expression !equal CompareOp<"==" | "!="> Expression |
+    Expression !greaterLess (CompareOp<"<=" | ">=" > | @extend[@name=CompareOp]<"<"> | @extend[@name=CompareOp]<">">) Expression | /*copy-paste from example now, understand later*/
+    Expression !bitShift BitOp<"<<" | ">>"> Expression
+  } |
+
+  UnaryExpression{
+    (LogicOp<"!"> | ArithOp<"+" | "-"> | BitOp<"~">) !suffix Expression|
+
+    ("--" | "++") !suffix Expression | Expression !prefix ("--" | "++")
+  } |
+
+  AssignmentExpression{
+    Identifier "=" Expression
+  } |
+
+  TernaryExpression{
+    Expression !ternary "?" Expression ":" Expression
+  } |
+
+  FieldExpression {
+    Expression !subscript "." Identifier
+  } |
+
+  CallExpression {
+    Identifier ArgumentList
+  }
 }
 
 @detectDelim
