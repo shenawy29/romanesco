@@ -108,7 +108,7 @@ function render()
 	gl.uniform1f(center_y_location, center_y);
 	gl.uniform1f(aspect_ratio_location, aspect_ratio);
 
-	const time = new Date().getTime() - time0;
+	const time = (new Date().getTime() - time0)/1000.0;
 	gl.uniform1f(time_location, time);
 
 	gl.bindVertexArray(quad_vao);

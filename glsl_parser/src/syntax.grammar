@@ -6,26 +6,18 @@
   }
 
   Builtin {
-    "gl_" @asciiLetter*
-  }
-
-  Const { "const" }
-
-  PrimitiveNonVoidType {
-    (Const space+)? (
-      "bool" | "int" | "uint" | "float" | "double" |
-      (("b"| "i" | "u" | "" | "d") "vec" ("2"|"3"|"4")) |
-      ("mat" ("2"|"3"|"4") "x" ("2"|"3"|"4")) |
-      ("mat" ("2"|"3"|"4"))
-    )
+    "gl_" (@asciiLetter | "_" | @digit)*
   }
 
   PrimitiveType {
     "void" |
-    PrimitiveNonVoidType space+
+    "bool" | "int" | "uint" | "float" | "double" |
+    (("b"| "i" | "u" | "d")? "vec" ("2"|"3"|"4")) |
+    ("mat" ("2"|"3"|"4") "x" ("2"|"3"|"4")) |
+    ("mat" ("2"|"3"|"4"))
   }
 
-  Identifier { (@asciiLetter | "_")+ ((@asciiLetter | "_") | @digit)* }
+  Identifier { (@asciiLetter | "_")+ (@asciiLetter | "_" | @digit)* }
   
   LineComment { "//" ("\\\n" | ![\n])* }
 
@@ -39,16 +31,18 @@
   
   String { '"' (!["\\] | "\\" _)* '"' }
   
-  Boolean { "true" | "false" }
-
   Integer { @digit+ ("u"|"U")?}
 
   Float { (("." @digit+) | (@digit+ "." @digit*)) ("f" | "F")?}
 
   space { @whitespace+ }
 
-  @precedence { PrimitiveType, PrimitiveNonVoidType, Identifier}
-  @precedence { Float, Integer, Boolean, Identifier }
+  "="[@name=Equals]
+
+  "(" ")" "[" "]" "{" "}"
+
+  @precedence { PrimitiveType, Identifier}
+  @precedence { Float, Integer, Identifier }
 
   @precedence {"<<", "<=", "<"}
   @precedence {">>", ">=", ">"}
@@ -80,6 +74,10 @@ CompareOp<expr> { expr }
 }
 
 kw<term> { @specialize[@name={term}]<Identifier, term> }
+
+Const {
+  @specialize[@name="PrimitiveType"]<Identifier, "const">
+}
 
 Statement {
   Block |
@@ -128,7 +126,7 @@ Reserved {
   | kw<"long">
 }
 
-TypeIdentifier { PrimitiveType | Identifier }
+TypeIdentifier { Const? (PrimitiveType | Identifier) }
 
 EmptyStatement {
   ";"
@@ -179,15 +177,15 @@ ReturnStatement{
 }
 
 InVariableDeclaration {
-  kw<"in"> PrimitiveNonVoidType Identifier ("=" Expression)? ";"
+  kw<"in"> PrimitiveType Identifier ("=" Expression)? ";"
 }
 
 OutVariableDeclaration {
-  kw<"out"> PrimitiveNonVoidType Identifier ("=" Expression)? ";"
+  kw<"out"> PrimitiveType Identifier ("=" Expression)? ";"
 }
 
 UniformVariableDeclaration {
-  kw<"uniform"> PrimitiveNonVoidType Identifier ("=" Expression)? ";"
+  kw<"uniform"> PrimitiveType Identifier ("=" Expression)? ";"
 }
 
 VariableDeclaration {
@@ -202,7 +200,7 @@ FunctionDefinition {
   FunctionHeader Block
 }
 
-ArgumentList{
+ArgumentList {
   "(" (TypeIdentifier Identifier ("," TypeIdentifier Identifier)*)? ")"
 }
 
@@ -224,7 +222,7 @@ Expression {
   String |
   Integer |
   Float |
-  Boolean |
+  @specialize[@name="Boolean"]<Identifier, "true" | "false"> |
 
   ParenthesizedExpression |
 

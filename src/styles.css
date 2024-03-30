@@ -14,13 +14,13 @@ canvas
 	flex-grow: 1;
 }
 
-.cm-editor{
-	display: initial !important;
+#editor, .cm-editor
+{
+	height: 100% !important;
 }
 
 #editor
 {
-	height: 100% !important;
 	width: 25%;
 }
 
