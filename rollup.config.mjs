@@ -19,7 +19,7 @@ export default [
 
   // Main application
   {
-    input: "./src/editor.mjs",
+    input: "./src/editor/index.mjs",
     output: {
       file: "./dist/editor.bundle.js",
       format: "iife"

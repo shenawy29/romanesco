@@ -4,11 +4,9 @@ import { lintGutter } from "@codemirror/lint"
 import { indentWithTab } from "@codemirror/commands"
 
 import { UpdateLints } from "./errors.mjs"
-
-import { GLSL } from "../glsl_parser/dist/index"
-
 import { theme } from "./themes.js"
 
+import { GLSL } from "../../glsl_parser/dist/index"
 
 const initial_program =
 `vec2 rotated(float theta, vec2 z)
