@@ -1,6 +1,6 @@
 import { EditorView } from "codemirror"
 
-const is_dark_mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+export const is_dark_mode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 
 const
     stone               = is_dark_mode ? "#7d8799": "", // Brightened compared to original to increase contrast

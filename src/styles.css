@@ -14,37 +14,38 @@ canvas
 	flex-grow: 1;
 }
 
-#editor, .cm-editor
-{
-	height: 100% !important;
-}
-
 #editor
 {
 	width: 25%;
-}
-
-#run_btn
-{
-	height: 4em;
-	width: 4em;
-	position: absolute;
-	bottom: 0;
-	right: 0;
-	z-index: 100;
-}
-
-.lint-error
-{
-	font-family: arial; font-size: 70%; background: #ffa; color: #a00; padding: 2px 5px 3px;
 	display: flex;
+	flex-direction: column;
+
+	--toolbar-width : 4%;
 }
-.lint-error-icon
+
+.cm-editor
 {
-	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAHlBMVEW7AAC7AACxAAC7AAC7AAAAAAC4AAC5AAD///+7AAAUdclpAAAABnRSTlMXnORSiwCK0ZKSAAAATUlEQVR42mWPOQ7AQAgDuQLx/z8csYRmPRIFIwRGnosRrpamvkKi0FTIiMASR3hhKW+hAN6/tIWhu9PDWiTGNEkTtIOucA5Oyr9ckPgAWm0GPBog6v4AAAAASUVORK5CYII=");
-	background-size: contain;
-	background-repeat: no-repeat;
-	width: 20px;
+	flex: 1;
+	max-height: calc(100% - var(--toolbar-width));
+	height: 100%;
+}
+
+#toolbar
+{
+	display: flex;
+	flex-direction: row;
+	height: var(--toolbar-width);
+}
+
+#toolbar[dark="true"], #toolbar[dark="true"] *
+{
+	background: #1E1E1E;
+	color:#D4D4D4;
+}
+
+#toolbar > button
+{
+	padding: 1em;
 }
 
 @media (orientation: landscape)
