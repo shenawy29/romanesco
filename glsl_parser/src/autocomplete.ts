@@ -26,12 +26,32 @@ function local_completion(context: CompletionContext): CompletionResult | null {
     return { options, from: 1 };
 }
 
-const keyword_completion = (name: string) => { return { label: name, type: "keyword" } };
+const keyword_completions = (keywords + " " + glsl_keywords).split(" ").map((name: string) => { return { label: name, type: "keyword" } });
+
+const primitive_type_completions =
+
+// Define all basic primitive types
+["int", "double", "float", "void", "bool", "uint"]
+
+// Define all vector types
+.concat(["b", "i", "u", "", "d"].map(pref => { return [pref + "vec2", pref + "vec3", pref + "vec4"]; }).flat())
+
+// Define all matrix types
+.concat(["mat2", "mat3", "mat4"].map(mat_type => {return [mat_type, mat_type + "x2", mat_type + "x3", mat_type + "x4"];}).flat())
+
+// Make completion object out of all the primitive types
+.map(type_name => {return {label: type_name, type: "type"}});
+
 
 export const autocomplete_extensions = [
     GLSLLanguage.data.of({
-        autocomplete: completeFromList((keywords + " " + glsl_keywords).split(" ").map(keyword_completion))
+        autocomplete: completeFromList(keyword_completions)
     }),
+
+    GLSLLanguage.data.of({
+        autocomplete: completeFromList(primitive_type_completions)
+    }),
+
     //GLSLLanguage.data.of({
     //  autocomplete: local_completion
     //})
