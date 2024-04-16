@@ -9,14 +9,6 @@
     "gl_" (@asciiLetter | "_" | @digit)*
   }
 
-  PrimitiveType {
-    "void" |
-    "bool" | "int" | "uint" | "float" | "double" |
-    (("b"| "i" | "u" | "d")? "vec" ("2"|"3"|"4")) |
-    ("mat" ("2"|"3"|"4") "x" ("2"|"3"|"4")) |
-    ("mat" ("2"|"3"|"4"))
-  }
-
   Identifier { (@asciiLetter | "_")+ (@asciiLetter | "_" | @digit)* }
   
   LineComment { "//" ("\\\n" | ![\n])* }
@@ -41,7 +33,8 @@
 
   "(" ")" "[" "]" "{" "}"
 
-  @precedence { PrimitiveType, Identifier}
+  ","
+
   @precedence { Float, Integer, Identifier }
 
   @precedence {"<<", "<=", "<"}
@@ -74,6 +67,19 @@ CompareOp<expr> { expr }
 }
 
 kw<term> { @specialize[@name={term}]<Identifier, term> }
+
+primitiveType {
+  @specialize[@name="PrimitiveType"]<Identifier,
+    "int"   | "double" | "float"  | "void" | "bool" | "uint" |
+    "bvec2" | "bvec3"  | "bvec4"  |
+    "ivec2" | "ivec3"  | "ivec4"  |
+    "uvec2" | "uvec3"  | "uvec4"  |
+    "vec2"  | "vec3"   |  "vec4"  |
+    "dvec2" | "dvec3"  | "dvec4"  |
+    "mat2"  | "mat2x2" | "mat2x3" | "mat2x4" |
+    "mat3"  | "mat3x2" | "mat3x3" | "mat3x4" |
+    "mat4"  | "mat4x2" | "mat4x3" | "mat4x4">
+}
 
 Const {
   @specialize[@name="PrimitiveType"]<Identifier, "const">
@@ -126,7 +132,7 @@ Reserved {
   | kw<"long">
 }
 
-TypeIdentifier { Const? (PrimitiveType | Identifier) }
+TypeIdentifier { Const? (primitiveType | Identifier) }
 
 EmptyStatement {
   ";"
@@ -177,15 +183,15 @@ ReturnStatement{
 }
 
 InVariableDeclaration {
-  kw<"in"> PrimitiveType Identifier ("=" Expression)? ";"
+  kw<"in"> primitiveType Identifier ("=" Expression)? ";"
 }
 
 OutVariableDeclaration {
-  kw<"out"> PrimitiveType Identifier ("=" Expression)? ";"
+  kw<"out"> primitiveType Identifier ("=" Expression)? ";"
 }
 
 UniformVariableDeclaration {
-  kw<"uniform"> PrimitiveType Identifier ("=" Expression)? ";"
+  kw<"uniform"> primitiveType Identifier ("=" Expression)? ";"
 }
 
 VariableDeclaration {
@@ -200,12 +206,12 @@ FunctionDefinition {
   FunctionHeader Block
 }
 
-ArgumentList {
+TypedArgumentList {
   "(" (TypeIdentifier Identifier ("," TypeIdentifier Identifier)*)? ")"
 }
 
 FunctionHeader {
-  TypeIdentifier Identifier ArgumentList
+  TypeIdentifier Identifier TypedArgumentList
 }
 
 StructDefinition {
@@ -258,7 +264,11 @@ Expression {
   } |
 
   CallExpression {
-    Identifier ArgumentList
+    Identifier "(" (Expression ("," Expression)* )? ")"
+  } |
+
+  CastOrConstructExpression {
+    primitiveType "(" (Expression ("," Expression)* )? ")"
   }
 }
 
