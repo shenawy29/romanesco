@@ -112,24 +112,105 @@ Statement {
 
   PreprocDirectiveName |
 
-  Reserved
-}
-
-Reserved {
-  kw<"goto">
-  | kw<"typedef">
-  | kw<"enum">
-  | kw<"class">
-  | kw<"template">
-  | kw<"using">
-  | kw<"namespace">
-  | kw<"extern">
-  | kw<"this">
-  | kw<"sizeof">
-  | kw<"static">
-  | kw<"volatile">
-  | kw<"public"> /*??*/
-  | kw<"long">
+  /*Some of the following keywords are reserved by the language and not usable in code,
+  and some are just in this list for now to be able to have highlighting and they should be
+  integrated into expressions/statements of the language some day*/
+  @specialize[@name="Reserved"]<Identifier,
+  "goto"                 |
+  "typedef"              |
+  "enum"                 |
+  "class"                |
+  "template"             |
+  "using"                |
+  "namespace"            |
+  "extern"               |
+  "this"                 |
+  "sizeof"               |
+  "static"               |
+  "volatile"             |
+  "public" /*??*/        |
+  "long"                 |
+  "attribute"            |
+  "varying"              |
+  "coherent"             |
+  "restrict"             |
+  "readonly"             |
+  "writeonly"            |
+  "atomic_uint"          |
+  "layout"               |
+  "centroid"             |
+  "flat"                 |
+  "smooth"               |
+  "noperspective"        |
+  "patch"                |
+  "sample"               |
+  "invariant"            |
+  "precise"              |
+  "subroutine"           |
+  "inout"                |
+  "discard"              |
+  "lowp"                 |
+  "mediump"              |
+  "highp"                |
+  "precision"            |
+  "sampler1D"            |
+  "sampler1DShadow"      |
+  "sampler1DArray"       |
+  "sampler1DArrayShadow" |
+  "isampler1D"           |
+  "isampler1DArray"      |
+  "usampler1D"           |
+  "usampler1DArray"      |
+  "sampler2D"            |
+  "sampler2DShadow"      |
+  "sampler2DArray"       |
+  "sampler2DArrayShadow" |
+  "isampler2D"           |
+  "isampler2DArray"      |
+  "usampler2D"           |
+  "usampler2DArray"      |
+  "sampler2DRect"        |
+  "sampler2DRectShadow"  |
+  "isampler2DRect"       |
+  "usampler2DRect"       |
+  "sampler2DMS"          |
+  "isampler2DMS"         |
+  "usampler2DMS"         |
+  "sampler2DMSArray"     |
+  "isampler2DMSArray"    |
+  "usampler2DMSArray"    |
+  "sampler3D"            |
+  "isampler3D"           |
+  "usampler3D"           |
+  "samplerCube"          |
+  "samplerCubeShadow"    |
+  "isamplerCube"         |
+  "usamplerCube"         |
+  "samplerBuffer"        |
+  "isamplerBuffer"       |
+  "usamplerBuffer"       |
+  "image1D"              |
+  "iimage1D"             |
+  "uimage1D"             |
+  "image1DArray"         |
+  "iimage1DArray"        |
+  "uimage1DArray"        |
+  "image2D"              |
+  "iimage2D"             |
+  "uimage2D"             |
+  "image2DArray"         |
+  "iimage2DArray"        |
+  "uimage2DArray"        |
+  "image3D"              |
+  "iimage3D"             |
+  "uimage3D"             |
+  "imageCube"            |
+  "iimageCube"           |
+  "uimageCube"           |
+  "imageBuffer"          |
+  "iimageBuffer"         |
+  "uimageBuffer"
+  >
 }
 
 TypeIdentifier { Const? (primitiveType | Identifier) }
@@ -229,6 +310,8 @@ Expression {
   Integer |
   Float |
   @specialize[@name="Boolean"]<Identifier, "true" | "false"> |
+
+  @specialize[@name="BuiltinMacro"]<Identifier, "__LINE__" | "__FILE__" | "__VERSION__"> |
 
   ParenthesizedExpression |
 
