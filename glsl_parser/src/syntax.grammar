@@ -263,21 +263,15 @@ ReturnStatement{
   kw<"return"> Expression? ";"
 }
 
-InVariableDeclaration {
-  kw<"in"> primitiveType Identifier ("=" Expression)? ";"
-}
-
-OutVariableDeclaration {
-  kw<"out"> primitiveType Identifier ("=" Expression)? ";"
-}
-
-UniformVariableDeclaration {
-  kw<"uniform"> primitiveType Identifier ("=" Expression)? ";"
-}
-
 VariableDeclaration {
   TypeIdentifier Identifier ("=" Expression)? ";"
 }
+
+InVariableDeclaration { kw<"in"> VariableDeclaration }
+
+OutVariableDeclaration { kw<"out"> VariableDeclaration }
+
+UniformVariableDeclaration { kw<"uniform"> VariableDeclaration }
 
 FunctionDeclaration {
   FunctionHeader ";"
