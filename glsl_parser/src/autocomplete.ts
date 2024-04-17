@@ -65,11 +65,15 @@ function LocalCompletion(context: CompletionContext): CompletionResult | null {
     const is_block = inner_node.name == "Block";
 
     // ... this is why we are starting the scope scanning in a different way depending on the node type.
-    const block = is_block ? inner_node : inner_node.parent;
+    let parent_node = is_block ? inner_node : inner_node.parent;
 
-    // Check if the block is valid : the parent can still be null
-    if (block) {
-        const definitions = GetDefinitionsUntil(context.state.doc, block, context.pos);
+    // Skip the autocomplete suggestions when the user is defining a variable/function. Otherwise, it's a bit annoying to
+    // keep receiving suggestions for the same variable name that we are writing.
+    if(!is_block && parent_node?.name == "VariableDeclaration")
+        parent_node = inner_node.prevSibling;
+
+    if (parent_node) {
+        const definitions = GetDefinitionsUntil(context.state.doc, parent_node, context.pos);
         if (definitions.length != 0)
             return {
                 options: definitions,
