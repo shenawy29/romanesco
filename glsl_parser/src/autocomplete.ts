@@ -14,6 +14,9 @@ function GetVariableNameNodeFromDeclaration(node: SyntaxNodeRef) { return node.n
 function IsFunctionDefinition(node: SyntaxNodeRef) { return node.name == "FunctionDeclaration" || node.name == "FunctionDefinition"; }
 function GetFunctionNameNodeFromDefinition(node: SyntaxNodeRef) { return node.node.getChild("FunctionHeader")?.getChild("Identifier"); }
 
+function IsStructDefinition(node: SyntaxNodeRef) { return node.name == "StructDefinition" }
+function GetStructNameNodeFromDefinition(node: SyntaxNodeRef) { return node.node.getChild("Identifier"); }
+
 // Keep one "static" cache for now, but it would be nice to have one per extension instance
 const cache = new NodeWeakMap<readonly Completion[]>();
 
@@ -40,6 +43,13 @@ function GetDefinitionsUntil(doc: Text, node: SyntaxNode, until: number) {
                 const function_name_node = GetFunctionNameNodeFromDefinition(current_node);
                 if (function_name_node)
                     definitions.push({ label: doc.sliceString(function_name_node.from, function_name_node.to), type: "function" });
+            }
+        else
+            // Structs
+            if (IsStructDefinition(current_node)) {
+                const struct_name_node = GetStructNameNodeFromDefinition(current_node);
+                if (struct_name_node)
+                    definitions.push({ label: doc.sliceString(struct_name_node.from, struct_name_node.to), type: "class" });
             }
 
         // TODO : gather definitions for struts and macros
