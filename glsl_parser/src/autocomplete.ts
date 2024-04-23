@@ -7,54 +7,72 @@ import { completeFromList, CompletionContext, CompletionResult, Completion } fro
 // Just to be explicit about the type we are referencing by "Text"
 import { Text } from "@codemirror/state"
 
-// Helper functions for variable and function declarations. It would be nice to abstract them in a map like in the javascript example
-function IsVariableDeclaration(node: SyntaxNodeRef) { return node.name == "VariableDeclaration"; }
-function GetVariableNameNodeFromDeclaration(node: SyntaxNodeRef) { return node.node.getChild("Identifier"); }
+// An array of tuples that defines how to check for definitions
+const definition_dispatcher: [match: (node: SyntaxNodeRef) => SyntaxNodeRef | null, type: string][] = [
+    [
+        (node: SyntaxNodeRef) => {
+            if (node.name == "VariableDeclaration")
+                return node.node.getChild("Identifier");
+            return null;
+        },
+        "variable"
+    ],
 
-function IsFunctionDefinition(node: SyntaxNodeRef) { return node.name == "FunctionDeclaration" || node.name == "FunctionDefinition"; }
-function GetFunctionNameNodeFromDefinition(node: SyntaxNodeRef) { return node.node.getChild("FunctionHeader")?.getChild("Identifier"); }
+    [
+        (node: SyntaxNodeRef) => {
+            if (node.name == "FunctionDeclaration" || node.name == "FunctionDefinition")
+                return node.node.getChild("FunctionHeader")!.getChild("Identifier");
+            return null;
+        },
+        "function"
+    ],
 
-function IsStructDefinition(node: SyntaxNodeRef) { return node.name == "StructDefinition" }
-function GetStructNameNodeFromDefinition(node: SyntaxNodeRef) { return node.node.getChild("Identifier"); }
+    [
+        (node: SyntaxNodeRef) => {
+            if (node.name == "StructDefinition")
+                return node.node.getChild("Identifier");
+            return null;
+        },
+        "class"
+    ],
+];
 
 // Keep one "static" cache for now, but it would be nice to have one per extension instance
+// TODO : gather definitions for macros
 const cache = new NodeWeakMap<readonly Completion[]>();
 
-function GetDefinitionsUntil(doc: Text, node: SyntaxNode, until: number) {
-    let cached = cache.get(node);
+function GetDefinitionsUntil(doc: Text, node: SyntaxNode, until: number): readonly Completion[] {
+    const cached = cache.get(node);
     if (cached) return cached;
 
-    let definitions: Completion[] = [];
+    let definitions: Completion[] = [], top = true;
 
     // Iterate through all the nodes in the block and gather all the definitions.
     node.cursor(IterMode.IncludeAnonymous).iterate(current_node => {
+        // Skip the root node that we started iterating from. We only want to iterate on it's children recursively.
+        if (top) {
+            top = false;
+            return;
+        }
+
         // Stop iterating when we reach the limit
         if (current_node.from >= until) return false;
 
-        // Variables
-        if (IsVariableDeclaration(current_node)) {
-            const variable_name_node = GetVariableNameNodeFromDeclaration(current_node);
-            if (variable_name_node)
-                definitions.push({ label: doc.sliceString(variable_name_node.from, variable_name_node.to), type: "variable" });
+        // Don't iterate through other blocks with different scopes that the node from where we started
+        if (current_node.name == "Block")
+            return false;
+
+        // Find all the definitions (variables, function, etc..) and make completion data out of them.
+        for (const [search, type] of definition_dispatcher) {
+            const definition_identifier_node = search(current_node);
+            if (definition_identifier_node) {
+                definitions.push({ label: doc.sliceString(definition_identifier_node.from, definition_identifier_node.to), type: type });
+                break;
+            }
         }
-        else
-            // Functions
-            if (IsFunctionDefinition(current_node)) {
-                const function_name_node = GetFunctionNameNodeFromDefinition(current_node);
-                if (function_name_node)
-                    definitions.push({ label: doc.sliceString(function_name_node.from, function_name_node.to), type: "function" });
-            }
-        else
-            // Structs
-            if (IsStructDefinition(current_node)) {
-                const struct_name_node = GetStructNameNodeFromDefinition(current_node);
-                if (struct_name_node)
-                    definitions.push({ label: doc.sliceString(struct_name_node.from, struct_name_node.to), type: "class" });
-            }
+    });
 
-        // TODO : gather definitions for struts and macros
-    })
-
+    // Repeat the same process for all parent nodes until the root of the syntax tree
     if (node.parent)
         definitions = definitions.concat(GetDefinitionsUntil(doc, node.parent, node.from));
 
@@ -69,18 +87,7 @@ function LocalCompletion(context: CompletionContext): CompletionResult | null {
     const is_word = inner_node.name == "Identifier";
     if (!is_word && !context.explicit) return null;
 
-    // SyntaxTree.resolveInner does not find the closest node to the position, but the innermost one containing it.
-    // If the user request for completions explicitly while the cursor is in the middle of whitespace, resolveInner
-    // will return the block containing the cursor...
-    const is_block = inner_node.name == "Block";
-
-    // ... this is why we are starting the scope scanning in a different way depending on the node type.
-    let parent_node = is_block ? inner_node : inner_node.parent;
-
-    // Skip the autocomplete suggestions when the user is defining a variable/function. Otherwise, it's a bit annoying to
-    // keep receiving suggestions for the same variable name that we are writing.
-    if(!is_block && parent_node?.name == "VariableDeclaration")
-        parent_node = inner_node.prevSibling;
+    const parent_node = inner_node.parent;
 
     if (parent_node) {
         const definitions = GetDefinitionsUntil(context.state.doc, parent_node, context.pos);
