@@ -11,21 +11,20 @@ body
 
 canvas
 {
-	flex-grow: 1;
+	/*The canvas takes 75% of the screen's width*/
+	flex: 3;
+	width: 75%;
 }
 
 #editor
 {
-	width: 25%;
-	display: flex;
-	flex-direction: column;
+	flex: 1;
 
 	--toolbar-width : 4%;
 }
 
 .cm-editor
 {
-	flex: 1;
 	max-height: calc(100% - var(--toolbar-width));
 	height: 100%;
 }
@@ -46,28 +45,4 @@ canvas
 #toolbar > button
 {
 	padding: 1em;
-}
-
-@media (orientation: landscape)
-{
-	canvas
-	{
-		width: 1px;
-	}
-	body
-	{
-		flex-direction: row;
-	}
-}
-
-@media (orientation: portrait)
-{
-	canvas
-	{
-		height: 1px;
-	}
-	body
-	{
-		flex-direction: column;
-	}
 }

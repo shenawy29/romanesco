@@ -82,19 +82,18 @@ function compile_frag_shader(shader_src)
 	gl.attachShader(program, frag_shader);
 	gl.linkProgram(program);
 
-	zoom_location = gl.getUniformLocation(program, "u_zoom");
-	center_x_location = gl.getUniformLocation(program, "u_center_x");
-	center_y_location = gl.getUniformLocation(program, "u_center_y");
+	zoom_location         = gl.getUniformLocation(program, "u_zoom");
+	center_x_location     = gl.getUniformLocation(program, "u_center_x");
+	center_y_location     = gl.getUniformLocation(program, "u_center_y");
 	aspect_ratio_location = gl.getUniformLocation(program, "u_aspect_ratio");
-
-	time_location = gl.getUniformLocation(program, "u_time");
+	time_location         = gl.getUniformLocation(program, "u_time");
 
 	return {"success" : errors=="", "errors" : errors, "warnings" : warnings};
 }
 
-var zoom = 2.5;
-var center_x = -0.5;
-var center_y = 0.0;
+var zoom         = 2.5;
+var center_x     = -0.5;
+var center_y     = 0.0;
 var aspect_ratio = output_canvas.width/output_canvas.height;
 
 const time0 = new Date().getTime();
@@ -125,15 +124,14 @@ setInterval(() => {
 
 function resize()
 {
-	var width = gl.canvas.clientWidth;
-	var height = gl.canvas.clientHeight;
-	if (gl.canvas.width != width ||
-			gl.canvas.height != height)
+	var width  = gl.canvas.clientWidth  * window.devicePixelRatio;
+	var height = gl.canvas.clientHeight * window.devicePixelRatio;
+	if (gl.canvas.width != width || gl.canvas.height != height)
 	{
-			gl.canvas.width = width;
-			gl.canvas.height = height;
-			gl.viewport(0,0,width,height);
-			aspect_ratio = width/height;
+		gl.canvas.width  = width ;
+		gl.canvas.height = height;
+		gl.viewport(0, 0, width, height);
+		aspect_ratio = width/height;
 	}
 	render();
 }
