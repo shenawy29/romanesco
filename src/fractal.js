@@ -23,17 +23,16 @@ gl.shaderSource(vertex_shader,
 	in vec2 pos;
 
 	uniform float u_zoom;
-	uniform float u_center_x;
-	uniform float u_center_y;
+	uniform vec2  u_center_pos;
 	uniform float u_aspect_ratio;
 
 	out vec2 z0;
 
 	void main(){
 		gl_Position = vec4(pos,0.0,1.0);
-		z0 = (pos+vec2(1.0))*0.5;
-		z0.x= u_center_x + (z0.x* u_zoom - u_zoom * 0.5)*u_aspect_ratio;
-		z0.y= u_center_y + z0.y* u_zoom - u_zoom * 0.5;
+		z0          = (pos + vec2(1.0)) * 0.5;
+		z0.x        = u_center_pos.x + (z0.x * u_zoom - u_zoom * 0.5) * u_aspect_ratio;
+		z0.y        = u_center_pos.y +  z0.y * u_zoom - u_zoom * 0.5;
 	}`
 );
 gl.compileShader(vertex_shader);
@@ -45,8 +44,7 @@ var program = gl.createProgram();
 gl.attachShader(program, vertex_shader);
 
 var zoom_location;
-var center_x_location;
-var center_y_location;
+var center_pos_location;
 var aspect_ratio_location;
 var time_location;
 
@@ -83,8 +81,7 @@ function compile_frag_shader(shader_src)
 	gl.linkProgram(program);
 
 	zoom_location         = gl.getUniformLocation(program, "u_zoom");
-	center_x_location     = gl.getUniformLocation(program, "u_center_x");
-	center_y_location     = gl.getUniformLocation(program, "u_center_y");
+	center_pos_location   = gl.getUniformLocation(program, "u_center_pos");
 	aspect_ratio_location = gl.getUniformLocation(program, "u_aspect_ratio");
 	time_location         = gl.getUniformLocation(program, "u_time");
 
@@ -103,8 +100,7 @@ function render()
 	gl.useProgram(program);
 
 	gl.uniform1f(zoom_location, zoom);
-	gl.uniform1f(center_x_location, center_x);
-	gl.uniform1f(center_y_location, center_y);
+	gl.uniform2f(center_pos_location, center_x, center_y);
 	gl.uniform1f(aspect_ratio_location, aspect_ratio);
 
 	const time = (new Date().getTime() - time0)/1000.0;
@@ -124,8 +120,8 @@ setInterval(() => {
 
 function resize()
 {
-	var width  = gl.canvas.clientWidth  * window.devicePixelRatio;
-	var height = gl.canvas.clientHeight * window.devicePixelRatio;
+	var width  = Math.trunc(gl.canvas.clientWidth  * window.devicePixelRatio);
+	var height = Math.trunc(gl.canvas.clientHeight * window.devicePixelRatio);
 	if (gl.canvas.width != width || gl.canvas.height != height)
 	{
 		gl.canvas.width  = width ;
@@ -171,8 +167,8 @@ output_canvas.onmouseenter = function(e)
 output_canvas.onmousemove = function (e)
 {
 	const pos = e.currentTarget.getBoundingClientRect();
-	var x = e.clientX - pos.left;
-	var y = e.clientY - pos.top;
+	var x = (e.clientX - pos.left) * window.devicePixelRatio;
+	var y = (e.clientY - pos.top)  * window.devicePixelRatio;
 	if(mouse_down == 0)
 	{
 		last_mouse_x = x;
