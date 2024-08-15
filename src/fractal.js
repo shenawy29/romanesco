@@ -48,7 +48,7 @@ var center_pos_location;
 var aspect_ratio_location;
 var time_location;
 
-function compile_frag_shader(shader_src)
+function CompileFragmentShader(shader_src)
 {
 	gl.detachShader(program, frag_shader);
 
@@ -85,7 +85,20 @@ function compile_frag_shader(shader_src)
 	aspect_ratio_location = gl.getUniformLocation(program, "u_aspect_ratio");
 	time_location         = gl.getUniformLocation(program, "u_time");
 
-	return {"success" : errors=="", "errors" : errors, "warnings" : warnings};
+	const success = errors == "";
+
+	if (success)
+	{
+		if(!rendering)
+		{
+			Render();
+			rendering = true;
+		}
+	}
+	else
+		rendering = false;
+
+	return {"success" : success, "errors" : errors, "warnings" : warnings};
 }
 
 var zoom         = 2.5;
@@ -105,13 +118,16 @@ function invalidate()
 	valid = false;
 };
 
-function render()
+var rendering = false;
+
+function Render()
 {
 	const current_time = new Date().getTime();
-	const time = (current_time - time0)/1000.0;
-
+	
 	if(!valid)
 	{
+		const time = (current_time - time0)/1000.0;
+
 		gl.useProgram(program);
 	
 		// Upload all the uniforms to the GL program
@@ -145,7 +161,7 @@ function render()
 	if(remaining_time < 0) remaining_time = 0;
 
 	previous_time = current_time;
-	setTimeout(render, remaining_time);
+	setTimeout(Render, remaining_time);
 }
 
 function resize()

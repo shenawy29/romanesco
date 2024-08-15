@@ -83,11 +83,9 @@ void main()
 
 const editor_div = document.getElementById("editor");
 
-var run_editor = function () {
+var RunEditor = function () {
   const header_code = `#version 300 es
 precision highp float;
-
-#define complex vec2
 
 in vec2 z0;
 
@@ -128,17 +126,15 @@ uniform float u_time;
   const header_length = header_code.match(/\n/g).length;
 
   const full_code = header_code + editor.state.doc;
-  const status = compile_frag_shader(full_code);
+  const status = CompileFragmentShader(full_code);
 
   status.errors.forEach(err => err.line -= header_length);
   status.warnings.forEach(war => war.line -= header_length);
 
   UpdateLints(editor, status.errors, status.warnings);
-
-  render();
 }
 
-const keymaps = [{ key: "Alt-Enter", run: run_editor }];
+const keymaps = [{ key: "Alt-Enter", run: RunEditor }];
 
 let editor = new EditorView({
   doc: initial_program,
@@ -146,7 +142,7 @@ let editor = new EditorView({
   parent: editor_div
 });
 
-run_editor(editor.state.doc);
+RunEditor(editor.state.doc);
 
 // Toolbar
 
@@ -162,7 +158,7 @@ toolbar_div.setAttribute("dark", is_dark_mode);
   // put the run button on the right of the toolbox
   run_button.style.marginLeft = "auto";
 
-  run_button.onclick = ()=> {run_editor(editor.state.doc);};
+  run_button.onclick = ()=> {RunEditor(editor.state.doc);};
 
   run_button.textContent = "RUN";
 
