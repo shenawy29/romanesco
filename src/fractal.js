@@ -287,4 +287,4 @@ output_canvas.ontouchmove = function (e)
 	}
 }
 
-render();
+Render();
