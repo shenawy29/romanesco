@@ -94,29 +94,59 @@ var center_y     = 0.0;
 var aspect_ratio = output_canvas.width/output_canvas.height;
 
 const time0 = new Date().getTime();
+var   previous_time = time0;
+
+const frameRate = 30;
+const period    = 1000.0 / frameRate;
+
+var valid = false;
+function invalidate()
+{
+	valid = false;
+};
 
 function render()
 {
-	gl.useProgram(program);
+	const current_time = new Date().getTime();
+	const time = (current_time - time0)/1000.0;
 
-	gl.uniform1f(zoom_location, zoom);
-	gl.uniform2f(center_pos_location, center_x, center_y);
-	gl.uniform1f(aspect_ratio_location, aspect_ratio);
+	if(!valid)
+	{
+		gl.useProgram(program);
+	
+		// Upload all the uniforms to the GL program
+		gl.uniform1f(zoom_location, zoom);
+		gl.uniform2f(center_pos_location, center_x, center_y);
+		gl.uniform1f(aspect_ratio_location, aspect_ratio);
+		gl.uniform1f(time_location, time);
+	
+		// Render the fullscreen quad
+		gl.bindVertexArray(quad_vao);
+		gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
-	const time = (new Date().getTime() - time0)/1000.0;
-	gl.uniform1f(time_location, time);
+		// Wait for the GPU to finish rendering the frame
+		gl.finish();
 
-	gl.bindVertexArray(quad_vao);
-	gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+		valid = true;
+	}
+
+	// TODO : replace the follwing with whether or not the renderer needs
+	// to be continuously rendering (if it's using the time variable)
+	valid = false;
+
+	// The time it took to render the last frame
+	const frame_time = current_time - previous_time;
+	
+	// Compute the remaining time to catch up with the framerate
+	var remaining_time = period - frame_time;
+
+	// Not sure what will happen if setTimeout is called with a negative
+	// delay, but just to be sure
+	if(remaining_time < 0) remaining_time = 0;
+
+	previous_time = current_time;
+	setTimeout(render, remaining_time);
 }
-
-render();
-
-const period = 16;
-
-setInterval(() => {
-	render();
-}, period);
 
 function resize()
 {
@@ -129,7 +159,7 @@ function resize()
 		gl.viewport(0, 0, width, height);
 		aspect_ratio = width/height;
 	}
-	render();
+	invalidate();
 }
 new ResizeObserver(resize).observe(output_canvas)
 
@@ -178,13 +208,13 @@ output_canvas.onmousemove = function (e)
 	{
 		center_x = last_center_x + (last_mouse_x-x)/e.currentTarget.width * zoom * aspect_ratio;
 		center_y = last_center_y + (y-last_mouse_y)/e.currentTarget.height * zoom;
-		render();
+		invalidate();
 	}
 }
 output_canvas.onwheel = function (e)
 {
 	zoom *= 1 + 0.002 * e.deltaY;
-	render();
+	invalidate();
 }
 
 var fingers = 0;
@@ -224,7 +254,7 @@ output_canvas.ontouchmove = function (e)
 			center_x = last_center_x + (last_touches[0].pageX-x)/e.currentTarget.width * zoom * aspect_ratio;
 			center_y = last_center_y + (y-last_touches[0].pageY)/e.currentTarget.height * zoom;
 
-			render();
+			invalidate();
 			break;
 		case 2:
 			var x = e.touches[0].pageX - e.touches[1].pageX;
@@ -235,9 +265,10 @@ output_canvas.ontouchmove = function (e)
 
 			last_touches = e.touches;
 
-			render();
+			invalidate();
 			break;
 		default: break;
 	}
-
 }
+
+render();
