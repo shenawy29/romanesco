@@ -1,48 +1,42 @@
-html, body
-{
-	height: 100%;
+html,
+body {
+    height: 100%;
 }
 
-body
-{
-	display: flex;
-	margin: 0;
+body {
+    display: flex;
+    margin: 0;
 }
 
-canvas
-{
-	/*The canvas takes 75% of the screen's width*/
-	flex: 3;
-	width: 75%;
+canvas {
+    /*The canvas takes 75% of the screen's width*/
+    flex: 3;
+    width: 75%;
 }
 
-#editor
-{
-	flex: 1;
+#editor {
+    flex: 1;
 
-	--toolbar-width : 4%;
+    --toolbar-width: 4%;
 }
 
-.cm-editor
-{
-	max-height: calc(100% - var(--toolbar-width));
-	height: 100%;
+.cm-editor {
+    max-height: calc(100% - var(--toolbar-width));
+    height: 100%;
 }
 
-#toolbar
-{
-	display: flex;
-	flex-direction: row;
-	height: var(--toolbar-width);
+#toolbar {
+    display: flex;
+    flex-direction: row;
+    height: var(--toolbar-width);
 }
 
-#toolbar[dark="true"], #toolbar[dark="true"] *
-{
-	background: #1E1E1E;
-	color:#D4D4D4;
+#toolbar[dark="true"],
+#toolbar[dark="true"] * {
+    background: #1e1e1e;
+    color: #d4d4d4;
 }
 
-#toolbar > button
-{
-	padding: 1em;
+#toolbar > button {
+    padding: 1em;
 }

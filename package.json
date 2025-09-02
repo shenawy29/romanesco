@@ -1,16 +1,17 @@
 {
-  "dependencies": {
-    "@codemirror/lang-javascript": "^6.2.1",
-    "@codemirror/language": "^6.9.3",
-    "@codemirror/lint": "^6.4.2",
-    "@lezer/generator": "^1.5.1",
-    "@rollup/plugin-node-resolve": "^15.2.3",
-    "codemirror": "^6.0.1",
-    "rollup": "^4.9.0",
-    "rollup-plugin-ts": "^3.4.5",
-    "typescript": "^5.3.3"
-  },
-  "scripts": {
-    "prepare": "node --trace-warnings node_modules/.bin/rollup -c"
-  }
+    "dependencies": {
+        "@codemirror/lang-javascript": "^6.2.4",
+        "@codemirror/language": "^6.11.3",
+        "@codemirror/lint": "^6.8.5",
+        "@lezer/generator": "^1.8.0",
+        "codemirror": "^6.0.2",
+        "rolldown": "^1.0.0-beta.34",
+        "typescript": "^5.9.2"
+    },
+    "scripts": {
+        "prepare": "node --trace-warnings node_modules/.bin/rolldown -c"
+    },
+    "devDependencies": {
+        "prettier": "3.6.2"
+    }
 }

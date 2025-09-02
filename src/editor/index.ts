@@ -1,15 +1,14 @@
-import { EditorView, basicSetup } from "codemirror"
-import { keymap } from "@codemirror/view"
-import { lintGutter } from "@codemirror/lint"
-import { indentWithTab } from "@codemirror/commands"
+import { EditorView, basicSetup } from "codemirror";
+import { keymap } from "@codemirror/view";
+import { lintGutter } from "@codemirror/lint";
+import { indentWithTab } from "@codemirror/commands";
+import { UpdateLints } from "./errors";
+import { theme, is_dark_mode } from "./themes";
+import { CompileFragmentShader } from "../fractal";
 
-import { UpdateLints } from "./errors.mjs"
-import { theme, is_dark_mode } from "./themes.js"
+import GLSL from "../../glsl_parser/src/index";
 
-import { GLSL } from "../../glsl_parser/dist/index"
-
-const initial_program =
-`vec2 rotated(float theta, vec2 z)
+const initial_program = `vec2 rotated(float theta, vec2 z)
 {
   return z * mat2(cos(theta), -sin(theta),
           sin(theta), cos(theta));
@@ -84,7 +83,7 @@ void main()
 const editor_div = document.getElementById("editor");
 
 var RunEditor = function () {
-  const header_code = `#version 300 es
+    const header_code = `#version 300 es
 precision highp float;
 
 in vec2 z0;
@@ -122,24 +121,32 @@ vec2 conj(vec2 z)
 }
 
 uniform float u_time;
-`
-  const header_length = header_code.match(/\n/g).length;
+`;
+    const header_length = header_code.match(/\n/g).length;
 
-  const full_code = header_code + editor.state.doc;
-  const status = CompileFragmentShader(full_code);
+    const full_code = header_code + editor.state.doc;
+    const status = CompileFragmentShader(full_code);
 
-  status.errors.forEach(err => err.line -= header_length);
-  status.warnings.forEach(war => war.line -= header_length);
+    status.errors.forEach((err) => (err.line -= header_length));
+    status.warnings.forEach((war) => (war.line -= header_length));
 
-  UpdateLints(editor, status.errors, status.warnings);
-}
+    UpdateLints(editor, status.errors, status.warnings);
+};
 
 const keymaps = [{ key: "Alt-Enter", run: RunEditor }];
 
 let editor = new EditorView({
-  doc: initial_program,
-  extensions: [keymap.of(keymaps), keymap.of(indentWithTab), lintGutter(), basicSetup, EditorView.lineWrapping, theme, GLSL()],
-  parent: editor_div
+    doc: initial_program,
+    extensions: [
+        keymap.of(keymaps),
+        keymap.of(indentWithTab),
+        lintGutter(),
+        basicSetup,
+        EditorView.lineWrapping,
+        theme,
+        GLSL(),
+    ],
+    parent: editor_div,
 });
 
 RunEditor(editor.state.doc);
@@ -151,18 +158,18 @@ toolbar_div.id = "toolbar";
 
 toolbar_div.setAttribute("dark", is_dark_mode);
 
-{
-  let run_button = document.createElement("button");
-  run_button.id = "run_button";
+let run_button = document.createElement("button");
+run_button.id = "run_button";
 
-  // put the run button on the right of the toolbox
-  run_button.style.marginLeft = "auto";
+// put the run button on the right of the toolbox
+run_button.style.marginLeft = "auto";
 
-  run_button.onclick = ()=> {RunEditor(editor.state.doc);};
+run_button.onclick = () => {
+    RunEditor(editor.state.doc);
+};
 
-  run_button.textContent = "RUN";
+run_button.textContent = "RUN";
 
-  toolbar_div.appendChild(run_button);
-}
+toolbar_div.appendChild(run_button);
 
 editor_div.appendChild(toolbar_div);
